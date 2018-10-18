@@ -14,6 +14,7 @@ class BoardSquare extends StatefulWidget {
 }
 
 class _BoardSquareState extends State<BoardSquare> {
+  String squareName;
   ChessBoardController _controller;
   bool _selected = false;
   bool _legalMoveIndicator = false;
@@ -23,6 +24,7 @@ class _BoardSquareState extends State<BoardSquare> {
     super.initState();
     _controller = ChessBoardController.of(context);
     _controller.addBoardSquare(widget.squareName, showTileAsLegalMoveIndicator);
+    squareName = widget.squareName;
   }
 
   @override
@@ -30,21 +32,23 @@ class _BoardSquareState extends State<BoardSquare> {
     return ScopedModelDescendant<ChessBoardController>(
       builder: (_, child, model){
         String pieceName = _controller.getPieceName(widget.squareName);
-        return Stack(
-          alignment: AlignmentDirectional.center,
-          children: <Widget>[
-            Container(child: _legalMoveIndicatorDot()),
-            GestureDetector(
-              onTap: ()=> _isSelectable(pieceName, model.turn) ? _selectTile() : null,
-              child: Container(
-                color: _selected ? Colors.yellowAccent.shade200.withAlpha(120) : null,
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: ()=> _selectTile(pieceName, model.getPlayerTurn()),
+          child: Stack(
+            alignment: AlignmentDirectional.center,
+            children: <Widget>[
+              _legalMoveIndicatorDot(),
+              Container(
+                color: _selected
+                    ? Colors.yellowAccent.shade200.withAlpha(120)
+                    : null,
                 height: widget.squareWidth,
                 width: widget.squareWidth,
                 child: _getPieceImage(pieceName),
               ),
-            ),
-          ],
-
+            ],
+          ),
         );
       },
     );
@@ -53,7 +57,7 @@ class _BoardSquareState extends State<BoardSquare> {
   Widget _legalMoveIndicatorDot(){
     return _legalMoveIndicator
         ? CircleAvatar(backgroundColor: Colors.black.withAlpha(100),radius: widget.squareWidth/6,)
-        : null;
+        : Container();
   }
 
   void _unselect(){
@@ -62,23 +66,46 @@ class _BoardSquareState extends State<BoardSquare> {
     });
   }
 
-  void _selectTile(){
-
+  void _selectTile(String pieceName, String whoseTurn){
     //First, check is a square is currently selected (refer to lastSlectedSquare)
     //If true, check if the target is in the legal move
         //If legal, perform the legal move
     //Else, check if the square is selectable
 
-    if(_controller.isAnyPieceSelected()){
-
+    if(_controller.isAnyPieceSelected() && _controller.isTargetLegalMove(widget.squareName)){
+      _controller.makeMove(widget.squareName);
+    } else if(_isSelectable(pieceName, whoseTurn)){
+//      _controller.removeLastLegalMoves();
+//      _controller.generateLegalMoves(widget.squareName);
+      _controller.select(_unselect, widget.squareName);
+      setState(() {
+        _selected = true;
+      });
+    } else {
+      print('FATAL ERROR. selectTile error');
     }
 
-    _controller.removeLastLegalMoves();
-    _controller.generateLegalMoves(widget.squareName);
-    _controller.select(_unselect);
-    setState(() {
-      _selected = true;
-    });
+
+
+//    if(_controller.isAnyPieceSelected()) {
+//      if(_controller.isTargetLegalMove(widget.squareName)){
+//        _controller.makeMove(widget.squareName);
+//      } else if(_isSelectable(pieceName, whoseTurn)){
+//          _controller.removeLastLegalMoves();
+//          _controller.generateLegalMoves(widget.squareName);
+//          _controller.select(_unselect, widget.squareName);
+//          setState(() {
+//            _selected = true;
+//          });
+//        }
+//    } else if (_isSelectable(pieceName, whoseTurn)){
+//      _controller.removeLastLegalMoves();
+//      _controller.generateLegalMoves(widget.squareName);
+//      _controller.select(_unselect, widget.squareName);
+//      setState(() {
+//        _selected = true;
+//      });
+//    }
   }
 
   bool _isSelectable(String pieceName, String whoseTurn){

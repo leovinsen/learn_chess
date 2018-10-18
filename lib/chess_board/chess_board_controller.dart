@@ -4,15 +4,12 @@ import 'package:learn_chess/chess_board/board_square.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 class ChessBoardController extends Model {
-  //w for white, b for black
   final Chess chess = Chess();
-  //final double size;
-  String turn = 'W';
+  //String turn = 'W';
   Map<String, Function(bool)> mapOfBoardSquares = {};
-  VoidCallback _unselectLastSquare;
+  VoidCallback _unselectSelectedSquare;
+  String _selectedSquare;
   List _currentShownLegalMoves = [];
-
- // ChessBoardController(this.size);
 
   static ChessBoardController of(BuildContext context) =>
       ScopedModel.of<ChessBoardController>(context);
@@ -22,10 +19,15 @@ class ChessBoardController extends Model {
     return piece != null ? (piece.color.toString() + piece.type.name).toUpperCase() : null;
   }
 
-  void select(VoidCallback s){
-    if(_unselectLastSquare != null) _unselectLastSquare();
+  void select(VoidCallback s, String square){
+    if(_unselectSelectedSquare != null) _unselectSelectedSquare();
 
-    _unselectLastSquare = s;
+    _unselectSelectedSquare = s;
+    _selectedSquare = square;
+    removeLastLegalMoves();
+    generateLegalMoves(square);
+
+
   }
 
   void generateLegalMoves(String squareName){
@@ -39,8 +41,21 @@ class ChessBoardController extends Model {
     });
   }
 
+  bool isTargetLegalMove(String squareName){
+    bool b = false;
+
+    for(int i = 0; i < _currentShownLegalMoves.length; i++){
+      Map map = _currentShownLegalMoves[i];
+      if(map['to'] == squareName) {
+        b = true;
+        break;
+      }
+    }
+    return b;
+  }
+
   bool isAnyPieceSelected(){
-    return _unselectLastSquare != null;
+    return _unselectSelectedSquare != null;
   }
 
   void removeLastLegalMoves(){
@@ -53,8 +68,39 @@ class ChessBoardController extends Model {
     mapOfBoardSquares[squareName] = callback;
   }
 
-  void makeMove(){
+  void makeMove(String squareName){
+    print('Moving to $squareName');
 
+    chess.move({
+      'from' : _selectedSquare,
+      'to' : squareName
+    });
+
+    //turn = chess.turn.toString().toUpperCase();
+    removeLastLegalMoves();
+    _unselectSelectedSquare();
+    _unselectSelectedSquare = null;
+
+    _selectedSquare = null;
+
+    updateBoard();
+
+  }
+
+  String getPlayerTurn(){
+    return chess.turn.toString().toUpperCase();
+  }
+
+  void updateBoard() {
+    if (chess.in_checkmate) {
+      print('CHECKMATE!!!!');
+    } else if (chess.in_check) {
+      print('Checkhu');
+    } else if (chess.in_stalemate) {
+      print('Salemaetett');
+    }
+
+    notifyListeners();
   }
 
 }
