@@ -1,43 +1,43 @@
 import 'package:chess/chess.dart';
 import 'package:flutter/material.dart';
-import 'package:learn_chess/chess_board/board_square.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 class ChessBoardController extends Model {
   final Chess chess = Chess();
-  //String turn = 'W';
-  Map<String, Function(bool)> mapOfBoardSquares = {};
-  VoidCallback _unselectSelectedSquare;
+  Map<String, Function(bool)> legalMoveIndicatorFunctions = {};
+  VoidCallback _deselectSelectedSquare;
   String _selectedSquare;
   List _currentShownLegalMoves = [];
 
-  static ChessBoardController of(BuildContext context) =>
-      ScopedModel.of<ChessBoardController>(context);
 
-  String getPieceName(String square){
-    Piece piece = chess.get(square);
-    return piece != null ? (piece.color.toString() + piece.type.name).toUpperCase() : null;
-  }
+  void selectTile(VoidCallback deselectCallback, String square){
+    if(_deselectSelectedSquare != null) _deselectSelectedSquare();
 
-  void select(VoidCallback s, String square){
-    if(_unselectSelectedSquare != null) _unselectSelectedSquare();
-
-    _unselectSelectedSquare = s;
+    _deselectSelectedSquare = deselectCallback;
     _selectedSquare = square;
-    removeLastLegalMoves();
-    generateLegalMoves(square);
 
-
+    removeOldLegalMoveIndicators();
+    generateNewLegalMoves(square);
+    generateNewLegalMoveIndicators();
   }
 
-  void generateLegalMoves(String squareName){
+  void removeOldLegalMoveIndicators(){
+    _currentShownLegalMoves.forEach((entry){
+      legalMoveIndicatorFunctions[entry['to']](false);
+    });
+  }
+
+  void generateNewLegalMoves(String squareName){
     _currentShownLegalMoves = chess.moves({
       'square' : squareName,
       'verbose' : true
     });
+  }
+
+  void generateNewLegalMoveIndicators(){
     print(_currentShownLegalMoves);
     _currentShownLegalMoves.forEach((entry){
-      mapOfBoardSquares[entry['to']](true);
+      legalMoveIndicatorFunctions[entry['to']](true);
     });
   }
 
@@ -54,18 +54,9 @@ class ChessBoardController extends Model {
     return b;
   }
 
-  bool isAnyPieceSelected(){
-    return _unselectSelectedSquare != null;
-  }
-
-  void removeLastLegalMoves(){
-    _currentShownLegalMoves.forEach((entry){
-      mapOfBoardSquares[entry['to']](false);
-    });
-  }
 
   void addBoardSquare(String squareName, Function(bool) callback){
-    mapOfBoardSquares[squareName] = callback;
+    legalMoveIndicatorFunctions[squareName] = callback;
   }
 
   void makeMove(String squareName){
@@ -76,19 +67,13 @@ class ChessBoardController extends Model {
       'to' : squareName
     });
 
-    //turn = chess.turn.toString().toUpperCase();
-    removeLastLegalMoves();
-    _unselectSelectedSquare();
-    _unselectSelectedSquare = null;
+    removeOldLegalMoveIndicators();
+    _deselectSelectedSquare();
 
+    _deselectSelectedSquare = null;
     _selectedSquare = null;
 
     updateBoard();
-
-  }
-
-  String getPlayerTurn(){
-    return chess.turn.toString().toUpperCase();
   }
 
   void updateBoard() {
@@ -102,5 +87,25 @@ class ChessBoardController extends Model {
 
     notifyListeners();
   }
+
+  String getPlayerTurn(){
+    return chess.turn.toString().toUpperCase();
+  }
+
+
+  bool isAnyPieceSelected(){
+    return _deselectSelectedSquare != null;
+  }
+
+  String getPieceName(String square){
+    Piece piece = chess.get(square);
+    return piece != null ? (piece.color.toString() + piece.type.name).toUpperCase() : null;
+  }
+
+  static ChessBoardController of(BuildContext context) =>
+      ScopedModel.of<ChessBoardController>(context);
+
+
+
 
 }

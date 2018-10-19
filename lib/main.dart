@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:learn_chess/chess_board/chess_board.dart';
+import 'package:learn_chess/dashboard/home_page.dart';
 
 void main() => runApp(new MyApp());
 
@@ -9,26 +10,34 @@ class MyApp extends StatelessWidget {
     return new MaterialApp(
       title: 'Flutter Demo',
       theme: new ThemeData(
-        primarySwatch: Colors.blue,
+        textTheme: buildTextTheme(Theme.of(context).textTheme),
+        primarySwatch: Colors.grey,
+        primaryColor: Colors.grey.shade600,
+        primaryColorLight: Colors.grey.shade300
       ),
-      home: new MyHomePage(),
+      home: new HomePage(),
     );
   }
-}
 
-class MyHomePage extends StatefulWidget {
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
+  TextTheme buildTextTheme(TextTheme base){
 
-class _MyHomePageState extends State<MyHomePage> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: Center(
-        child: ChessBoard(),
+    return base.copyWith(
+      headline: base.headline.copyWith(
+        fontWeight: FontWeight.w500,
+      ),
+      title: base.title.copyWith(
+          fontSize: 18.0
+      ),
+      caption: base.caption.copyWith(
+        fontWeight: FontWeight.w400,
+        fontSize: 14.0,
       ),
     );
+//        .apply(
+//      fontFamily: 'Rubik',
+//      displayColor: kShrineBrown900,
+//      bodyColor: kShrineBrown900,
+//    );
   }
+
 }

@@ -23,7 +23,7 @@ class _BoardSquareState extends State<BoardSquare> {
   void initState() {
     super.initState();
     _controller = ChessBoardController.of(context);
-    _controller.addBoardSquare(widget.squareName, showTileAsLegalMoveIndicator);
+    _controller.addBoardSquare(widget.squareName, toggleLegalMoveIndicator);
     squareName = widget.squareName;
   }
 
@@ -34,7 +34,7 @@ class _BoardSquareState extends State<BoardSquare> {
         String pieceName = _controller.getPieceName(widget.squareName);
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: ()=> _selectTile(pieceName, model.getPlayerTurn()),
+          onTap: ()=> _handleUserTap(pieceName, model.getPlayerTurn()),
           child: Stack(
             alignment: AlignmentDirectional.center,
             children: <Widget>[
@@ -52,72 +52,6 @@ class _BoardSquareState extends State<BoardSquare> {
         );
       },
     );
-  }
-
-  Widget _legalMoveIndicatorDot(){
-    return _legalMoveIndicator
-        ? CircleAvatar(backgroundColor: Colors.black.withAlpha(100),radius: widget.squareWidth/6,)
-        : Container();
-  }
-
-  void _unselect(){
-    setState(() {
-      _selected = false;
-    });
-  }
-
-  void _selectTile(String pieceName, String whoseTurn){
-    //First, check is a square is currently selected (refer to lastSlectedSquare)
-    //If true, check if the target is in the legal move
-        //If legal, perform the legal move
-    //Else, check if the square is selectable
-
-    if(_controller.isAnyPieceSelected() && _controller.isTargetLegalMove(widget.squareName)){
-      _controller.makeMove(widget.squareName);
-    } else if(_isSelectable(pieceName, whoseTurn)){
-//      _controller.removeLastLegalMoves();
-//      _controller.generateLegalMoves(widget.squareName);
-      _controller.select(_unselect, widget.squareName);
-      setState(() {
-        _selected = true;
-      });
-    } else {
-      print('FATAL ERROR. selectTile error');
-    }
-
-
-
-//    if(_controller.isAnyPieceSelected()) {
-//      if(_controller.isTargetLegalMove(widget.squareName)){
-//        _controller.makeMove(widget.squareName);
-//      } else if(_isSelectable(pieceName, whoseTurn)){
-//          _controller.removeLastLegalMoves();
-//          _controller.generateLegalMoves(widget.squareName);
-//          _controller.select(_unselect, widget.squareName);
-//          setState(() {
-//            _selected = true;
-//          });
-//        }
-//    } else if (_isSelectable(pieceName, whoseTurn)){
-//      _controller.removeLastLegalMoves();
-//      _controller.generateLegalMoves(widget.squareName);
-//      _controller.select(_unselect, widget.squareName);
-//      setState(() {
-//        _selected = true;
-//      });
-//    }
-  }
-
-  bool _isSelectable(String pieceName, String whoseTurn){
-    if(pieceName == null) return false;
-
-    return pieceName.substring(0,1) == whoseTurn;
-  }
-
-  void showTileAsLegalMoveIndicator(bool b){
-    setState(() {
-      _legalMoveIndicator = b;
-    });
   }
 
   Widget _getPieceImage(String pieceName){
@@ -166,4 +100,39 @@ class _BoardSquareState extends State<BoardSquare> {
     }
     return imageToDisplay;
   }
+
+  Widget _legalMoveIndicatorDot(){
+    return _legalMoveIndicator
+        ? CircleAvatar(backgroundColor: Colors.black.withAlpha(100),radius: widget.squareWidth/6,)
+        : Container();
+  }
+
+  void _handleUserTap(String pieceName, String whoseTurn){
+    //First, check is a square is currently selected (refer to lastSlectedSquare)
+    //If true, check if the target is in the legal move
+        //If legal, perform the legal move
+    //Else, check if the square is selectable
+
+    if(_controller.isAnyPieceSelected() && _controller.isTargetLegalMove(widget.squareName)){
+      _controller.makeMove(widget.squareName);
+    } else if(pieceName?.substring(0,1) == whoseTurn){
+      _controller.selectTile(_deselectThisTile, widget.squareName);
+      setState(() {
+        _selected = true;
+      });
+    }
+  }
+
+  void _deselectThisTile(){
+    setState(() {
+      _selected = false;
+    });
+  }
+
+  void toggleLegalMoveIndicator(bool b){
+    setState(() {
+      _legalMoveIndicator = b;
+    });
+  }
+
 }

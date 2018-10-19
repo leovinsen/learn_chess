@@ -83,14 +83,14 @@ class _ChessBoardState extends State<ChessBoard> {
     );
   }
 
-  void refreshBoard() {
-    setState(() {});
-//    if (game.in_checkmate) {
-//      widget.onCheckMate(game.turn == chess.Color.WHITE ? "Black" : "White");
-//    } else if (game.in_draw || game.in_stalemate) {
-//      widget.onDraw();
-//    }
-  }
+//  void refreshBoard() {
+//    setState(() {});
+////    if (game.in_checkmate) {
+////      widget.onCheckMate(game.turn == chess.Color.WHITE ? "Black" : "White");
+////    } else if (game.in_draw || game.in_stalemate) {
+////      widget.onDraw();
+////    }
+//  }
 
   List<TableRow> buildBoard({double squareWidth}) {
     //from white perspective
