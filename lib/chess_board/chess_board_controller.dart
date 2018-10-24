@@ -3,7 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 class ChessBoardController extends Model {
-  final Chess chess = Chess();
+  final String fen;
+  Chess chess;
+  ChessBoardController([this.fen]){
+    chess = fen == null ? Chess() : Chess.fromFEN(fen);
+  }
+
+
   Map<String, Function(bool)> legalMoveIndicatorFunctions = {};
   VoidCallback _deselectSelectedSquare;
   String _selectedSquare;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:learn_chess/chess_board/chess_board.dart';
 
 class BoardSetupGuide extends StatefulWidget {
   @override
@@ -9,46 +10,52 @@ class BoardSetupGuide extends StatefulWidget {
 
 class BoardSetupGuideState extends State<BoardSetupGuide> with SingleTickerProviderStateMixin{
   TabController _tabController;
+  TextTheme textTheme;
+  final double hPadding = 20.0;
+  double boardWidth;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(vsync: this, length: 9);
-
+    _tabController = TabController(vsync: this, length: content.length + 1);
   }
   @override
   Widget build(BuildContext context) {
+    boardWidth = MediaQuery.of(context).size.width - hPadding*2;
+    textTheme = Theme
+        .of(context)
+        .textTheme
+        .apply(bodyColor: Colors.white);
     return Material(
       child: Stack(
         children: <Widget>[
 
           Container(
-            color: Colors.teal,
+            decoration: BoxDecoration(
+              gradient: new LinearGradient(
+                begin: FractionalOffset.topLeft,
+                end: FractionalOffset.bottomRight,
+                colors: [
+                  const Color(0xFF3C3B3F),
+                  const Color(0xFF605C3C),
+                ]
+              )
+            ),
             child: Column(
               children: <Widget>[
                 Flexible(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [0,1,2,3,4,5,6,7,8].map((int index) {
-                      return Center(
-                        child: Text(index.toString()),
-                      );
-                    }).toList()
-                  ),
-                ),
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 90.0, left: hPadding, right: hPadding, bottom: 30.0),
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [firstPage()] + [0,1,2,3,4,5,6].map((int index){
+                        return pageTemplate(fenList[index], content[index]);
+                      }).toList()
 
-                PreferredSize(
-                  preferredSize: const Size.fromHeight(48.0),
-                  child: Theme(
-                    data: Theme.of(context).copyWith(accentColor: Colors.white),
-                    child: Container(
-                      height: 48.0,
-                      alignment: Alignment.center,
-                      child: TabPageSelector(controller: _tabController),
                     ),
                   ),
                 ),
-
+                pageIndicator(),
               ],
             ),
           ),
@@ -64,4 +71,85 @@ class BoardSetupGuideState extends State<BoardSetupGuide> with SingleTickerProvi
       ),
     );
   }
+
+  Widget pageIndicator(){
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(23.0),
+      child: Theme(
+        data: Theme.of(context).copyWith(accentColor: Colors.white),
+        child: Transform.translate(
+          offset: Offset(0.0, -10.0),
+          child: Container(
+            height: 28.0,
+            alignment: Alignment.topCenter,
+            child: TabPageSelector(controller: _tabController),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget firstPage() {
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 80.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 30.0),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.3),
+          borderRadius: BorderRadius.all(
+            Radius.circular(5.0)
+          )
+        ),
+        child: ListView(
+          shrinkWrap: true,
+          children: <Widget>[
+            Center(child: Text('Setting Up The Board', style: textTheme.headline)),
+            SizedBox(height: 30.0,),
+            Text(
+              'Before we start learning how to play the game, we ought to know how to set up the board!',
+              textAlign: TextAlign.justify,
+              style: textTheme
+                  .title
+              ,)
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget pageTemplate(String fen, String content){
+
+    return Column(
+      children: <Widget>[
+        ChessBoard(width: boardWidth, enableMovement: false, fen: fen,),
+        SizedBox(height: 20.0,),
+        Text(content , style: textTheme.title, textAlign: TextAlign.center,)
+      ],
+    );
+
+  }
+
+  List<String> content = [
+
+    'At the beginning, the chess board is laid out so that the white square is in the bottom right-hand side. Top is black\'s side and bottom is white\'s side ',
+    'Then, the second row of each side is filled with pawns.',
+    'Followed by the rooks at the corner of each side ...',
+    '... and the knights next to them ...',
+    '... and the bishops ...',
+    '... and the queen on the square that matches her color...',
+    '... and finally, the king on the remaining square.'
+  ];
+
+  //Empty, pawns, rooks, knights, bishops, queen, king
+  List<String> fenList = [
+    '8/8/8/8/8/8/8/8 w - - 0 1',
+    '8/pppppppp/8/8/8/8/PPPPPPPP/8 w - - 0 1',
+    'r6r/pppppppp/8/8/8/8/PPPPPPPP/R6R w - - 0 1',
+    'rn4nr/pppppppp/8/8/8/8/PPPPPPPP/RN4NR w - - 0 1',
+    'rnb2bnr/pppppppp/8/8/8/8/PPPPPPPP/RNB2BNR w - - 0 1',
+    'rnbq1bnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1BNR w - - 0 1',
+    'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1'
+  ];
+
 }

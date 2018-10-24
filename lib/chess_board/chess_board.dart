@@ -4,6 +4,10 @@ import 'package:learn_chess/chess_board/chess_board_controller.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 class ChessBoard extends StatefulWidget {
+  final double width;
+  final bool enableMovement;
+  final String fen;
+  const ChessBoard({this.width, this.enableMovement, this.fen});
   // Defines the length and width of the chess board.
   //final size;
 
@@ -40,18 +44,20 @@ class ChessBoard extends StatefulWidget {
 }
 
 class _ChessBoardState extends State<ChessBoard> {
+   double width;
 
   @override
   void initState() {
     super.initState();
+    width = widget.width;
   }
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
+    //double width = MediaQuery.of(context).size.width;
 
     return ScopedModel<ChessBoardController>(
-      model: ChessBoardController(),
+      model: ChessBoardController(widget.fen),
       child: Container(
         height: width,
         width: width,
@@ -180,7 +186,7 @@ class _ChessBoardState extends State<ChessBoard> {
     return squareList.map((row) {
       return TableRow(
           children: row.map((square) {
-        return BoardSquare(squareName: square, squareWidth: squareWidth);
+        return BoardSquare(squareName: square, squareWidth: squareWidth, enableMovement: widget.enableMovement,);
       }).toList());
     }).toList();
   }

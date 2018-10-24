@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:learn_chess/beginners_course/beginners_course.dart';
+import 'package:learn_chess/chess_board/chess_board.dart';
 
 class HomePage extends StatelessWidget {
   @override
@@ -12,7 +13,11 @@ class HomePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            _buildFirstCard(context)
+            _buildFirstCard(context),
+            FlatButton(
+              child: Text('play'),
+              onPressed: () => openChessBoard(context),
+            )
           ],
         ),
       ),
@@ -61,6 +66,17 @@ class HomePage extends StatelessWidget {
   void openBeginnersCourse(BuildContext context){
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => BeginnersCourse()
+    ));
+  }
+
+  void openChessBoard(BuildContext context){
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => Scaffold(
+          appBar: AppBar(),
+          body: Center(
+            child: ChessBoard(width: MediaQuery.of(context).size.width,),
+          ),
+        )
     ));
   }
 }

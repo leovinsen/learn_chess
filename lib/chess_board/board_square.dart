@@ -6,7 +6,8 @@ import 'package:scoped_model/scoped_model.dart';
 class BoardSquare extends StatefulWidget {
   final String squareName;
   final double squareWidth;
-  const BoardSquare({this.squareName, this.squareWidth});
+  final bool enableMovement;
+  const BoardSquare({this.squareName, this.squareWidth, this.enableMovement});
 
 
   @override
@@ -34,7 +35,7 @@ class _BoardSquareState extends State<BoardSquare> {
         String pieceName = _controller.getPieceName(widget.squareName);
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: ()=> _handleUserTap(pieceName, model.getPlayerTurn()),
+          onTap: ()=> widget.enableMovement?? true ? _handleUserTap(pieceName, model.getPlayerTurn()) : null ,
           child: Stack(
             alignment: AlignmentDirectional.center,
             children: <Widget>[
