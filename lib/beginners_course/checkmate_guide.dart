@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:learn_chess/beginners_course/guide_page_template.dart';
 import 'package:learn_chess/beginners_course/helper.dart';
 //
 //List contents =
@@ -59,22 +58,17 @@ Map contents = {
   ],
 };
 
-List<Widget> widgets = [];
-
-
 class CheckmateGuide extends StatelessWidget {
   TextTheme textTheme;
   @override
   Widget build(BuildContext context) {
     textTheme = Theme.of(context).textTheme;
-    int count = 0;
     return Scaffold(
       appBar: AppBar(),
       body: Container(
         padding: const EdgeInsets.all(15.0) ,
         child: Column(
           children: titles.map((title){
-
             return GestureDetector(
               onTap: createCallback(context, title, generateCenters(contents[title])),
               child: CircleAvatar(
@@ -85,7 +79,6 @@ class CheckmateGuide extends StatelessWidget {
         ),
       ),
     );
-//    return GuidePageTemplate(title: 'Winning the Game', content: generateCenters(content),);
   }
 
   List<Widget> generateCenters(List<String> content){
@@ -95,15 +88,5 @@ class CheckmateGuide extends StatelessWidget {
       );
     }).toList();
   }
-
-//  VoidCallback createCallback(BuildContext context, String title, List<Widget> widgets){
-//    return (){
-//      Navigator.of(context).push(MaterialPageRoute(
-//          builder: (_) => GuidePageTemplate(title: title , content: widgets,)
-//      ));
-//    };
-//  }
-
-
 
 }

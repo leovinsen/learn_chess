@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+double hPadding = 30.0;
+
 class GuidePageTemplate extends StatefulWidget {
   //final String _content;
   final String title;

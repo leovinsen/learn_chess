@@ -2,12 +2,14 @@ import 'package:chess_vectors_flutter/chess_vectors_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:learn_chess/chess_board/chess_board_controller.dart';
 import 'package:scoped_model/scoped_model.dart';
+import 'package:flutter/foundation.dart';
 
 class BoardSquare extends StatefulWidget {
   final String squareName;
   final double squareWidth;
   final bool enableMovement;
-  const BoardSquare({this.squareName, this.squareWidth, this.enableMovement});
+  const BoardSquare({@required this.squareName, @required this.squareWidth, @required this.enableMovement})
+      : assert(squareName != null), assert(squareWidth != null), assert(enableMovement != null);
 
 
   @override
@@ -15,17 +17,18 @@ class BoardSquare extends StatefulWidget {
 }
 
 class _BoardSquareState extends State<BoardSquare> {
-  String squareName;
+
   ChessBoardController _controller;
-  bool _selected = false;
-  bool _legalMoveIndicator = false;
+  bool _selected;
+  bool _legalMoveIndicator;
 
   @override
   void initState() {
     super.initState();
+    _selected = false;
+    _legalMoveIndicator = false;
     _controller = ChessBoardController.of(context);
     _controller.addBoardSquare(widget.squareName, toggleLegalMoveIndicator);
-    squareName = widget.squareName;
   }
 
   @override
@@ -35,7 +38,9 @@ class _BoardSquareState extends State<BoardSquare> {
         String pieceName = _controller.getPieceName(widget.squareName);
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: ()=> widget.enableMovement?? true ? _handleUserTap(pieceName, model.getPlayerTurn()) : null ,
+          onTap: ()=> widget.enableMovement
+              ? _handleUserTap(pieceName, model.getPlayerTurn())
+              : null ,
           child: Stack(
             alignment: AlignmentDirectional.center,
             children: <Widget>[
@@ -118,10 +123,14 @@ class _BoardSquareState extends State<BoardSquare> {
       _controller.makeMove(widget.squareName);
     } else if(pieceName?.substring(0,1) == whoseTurn){
       _controller.selectTile(_deselectThisTile, widget.squareName);
-      setState(() {
-        _selected = true;
-      });
+      _selectThisTile();
     }
+  }
+
+  void _selectThisTile(){
+    setState(() {
+      _selected = true;
+    });
   }
 
   void _deselectThisTile(){

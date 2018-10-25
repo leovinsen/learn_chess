@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:learn_chess/beginners_course/beginners_course.dart';
 import 'package:learn_chess/chess_board/chess_board.dart';
+import 'package:learn_chess/chess_board/chess_board_controller.dart';
+import 'package:learn_chess/chess_board/chess_board_widget.dart';
+import 'package:scoped_model/scoped_model.dart';
 
 class HomePage extends StatelessWidget {
   @override
@@ -73,9 +76,7 @@ class HomePage extends StatelessWidget {
     Navigator.of(context).push(MaterialPageRoute(
         builder: (_) => Scaffold(
           appBar: AppBar(),
-          body: Center(
-            child: ChessBoard(width: MediaQuery.of(context).size.width,),
-          ),
+          body: ChessBoardWidget(enableMovement: true, boardWidth: MediaQuery.of(context).size.width, showHUD: true,)
         )
     ));
   }

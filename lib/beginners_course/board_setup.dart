@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:learn_chess/chess_board/chess_board.dart';
+import 'package:learn_chess/beginners_course/guide_page_template.dart';
+import 'package:learn_chess/chess_board/chess_board_widget.dart';
 
 class BoardSetupGuide extends StatefulWidget {
   @override
@@ -8,121 +9,123 @@ class BoardSetupGuide extends StatefulWidget {
   }
 }
 
-class BoardSetupGuideState extends State<BoardSetupGuide> with SingleTickerProviderStateMixin{
-  TabController _tabController;
+class BoardSetupGuideState extends State<BoardSetupGuide>{
+
   TextTheme textTheme;
-  final double hPadding = 20.0;
   double boardWidth;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(vsync: this, length: content.length + 1);
   }
   @override
   Widget build(BuildContext context) {
-    boardWidth = MediaQuery.of(context).size.width - hPadding*2;
+    boardWidth = MediaQuery.of(context).size.width - hPadding * 2;
     textTheme = Theme
         .of(context)
         .textTheme
         .apply(bodyColor: Colors.white);
-    return Material(
-      child: Stack(
-        children: <Widget>[
-
-          Container(
-            decoration: BoxDecoration(
-              gradient: new LinearGradient(
-                begin: FractionalOffset.topLeft,
-                end: FractionalOffset.bottomRight,
-                colors: [
-                  const Color(0xFF3C3B3F),
-                  const Color(0xFF605C3C),
-                ]
-              )
-            ),
-            child: Column(
-              children: <Widget>[
-                Flexible(
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 90.0, left: hPadding, right: hPadding, bottom: 30.0),
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [firstPage()] + [0,1,2,3,4,5,6].map((int index){
-                        return pageTemplate(fenList[index], content[index]);
-                      }).toList()
-
-                    ),
-                  ),
-                ),
-                pageIndicator(),
-              ],
-            ),
-          ),
-          SizedBox(
-            height: 80.0,
-            width: double.infinity,
-            child: AppBar(
-              elevation: 0.0,
-              backgroundColor: Colors.transparent,
-            ),
-          ),
-        ],
-      ),
+    return GuidePageTemplate(title: 'Board setup', content: [0,1,2,3,4,5,6].map((int index){
+                        return pageWidgetBuilder(fenList[index], content[index]);
+                      }).toList(),
+//      body: GuidePageTemplate(),
+//      child: Stack(
+//        children: <Widget>[
+//
+//          Container(
+//            decoration: BoxDecoration(
+//              gradient: new LinearGradient(
+//                begin: FractionalOffset.topLeft,
+//                end: FractionalOffset.bottomRight,
+//                colors: [
+//                  const Color(0xFF3C3B3F),
+//                  const Color(0xFF605C3C),
+//                ]
+//              )
+//            ),
+//            child: Column(
+//              children: <Widget>[
+//                Flexible(
+//                  child: Padding(
+//                    padding: EdgeInsets.only(top: 90.0, left: hPadding, right: hPadding, bottom: 30.0),
+//                    child: TabBarView(
+//                      controller: _tabController,
+//                      children: [firstPage()] + [0,1,2,3,4,5,6].map((int index){
+//                        return pageTemplate(fenList[index], content[index]);
+//                      }).toList()
+//
+//                    ),
+//                  ),
+//                ),
+//                pageIndicator(),
+//              ],
+//            ),
+//          ),
+//          SizedBox(
+//            height: 80.0,
+//            width: double.infinity,
+//            child: AppBar(
+//              elevation: 0.0,
+//              backgroundColor: Colors.transparent,
+//            ),
+//          ),
+//        ],
+//      ),
     );
   }
 
-  Widget pageIndicator(){
-    return PreferredSize(
-      preferredSize: const Size.fromHeight(23.0),
-      child: Theme(
-        data: Theme.of(context).copyWith(accentColor: Colors.white),
-        child: Transform.translate(
-          offset: Offset(0.0, -10.0),
-          child: Container(
-            height: 28.0,
-            alignment: Alignment.topCenter,
-            child: TabPageSelector(controller: _tabController),
-          ),
-        ),
-      ),
-    );
-  }
+//  Widget pageIndicator(){
+//    return PreferredSize(
+//      preferredSize: const Size.fromHeight(23.0),
+//      child: Theme(
+//        data: Theme.of(context).copyWith(accentColor: Colors.white),
+//        child: Transform.translate(
+//          offset: Offset(0.0, -10.0),
+//          child: Container(
+//            height: 28.0,
+//            alignment: Alignment.topCenter,
+//            child: TabPageSelector(controller: _tabController),
+//          ),
+//        ),
+//      ),
+//    );
+//  }
 
-  Widget firstPage() {
+//  Widget firstPage() {
+//
+//    return Padding(
+//      padding: const EdgeInsets.symmetric(vertical: 80.0),
+//      child: Container(
+//        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 30.0),
+//        decoration: BoxDecoration(
+//          color: Colors.black.withOpacity(0.3),
+//          borderRadius: BorderRadius.all(
+//            Radius.circular(5.0)
+//          )
+//        ),
+//        child: ListView(
+//          shrinkWrap: true,
+//          children: <Widget>[
+//            Center(child: Text('Setting Up The Board', style: textTheme.headline)),
+//            SizedBox(height: 30.0,),
+//            Text(
+//              'Before we start learning how to play the game, we ought to know how to set up the board!',
+//              textAlign: TextAlign.justify,
+//              style: textTheme
+//                  .title
+//              ,)
+//          ],
+//        ),
+//      ),
+//    );
+//  }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 80.0),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 30.0),
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.3),
-          borderRadius: BorderRadius.all(
-            Radius.circular(5.0)
-          )
-        ),
-        child: ListView(
-          shrinkWrap: true,
-          children: <Widget>[
-            Center(child: Text('Setting Up The Board', style: textTheme.headline)),
-            SizedBox(height: 30.0,),
-            Text(
-              'Before we start learning how to play the game, we ought to know how to set up the board!',
-              textAlign: TextAlign.justify,
-              style: textTheme
-                  .title
-              ,)
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget pageTemplate(String fen, String content){
+  Widget pageWidgetBuilder(String fen, String content){
 
     return Column(
       children: <Widget>[
-        ChessBoard(width: boardWidth, enableMovement: false, fen: fen,),
+        ChessBoardWidget(boardWidth: boardWidth, enableMovement: false, showHUD: false, initialPositionFEN: fen,),
+        //ChessBoard(width: boardWidth, enableMovement: false, fen: fen,),
         SizedBox(height: 20.0,),
         Text(content , style: textTheme.title, textAlign: TextAlign.center,)
       ],
