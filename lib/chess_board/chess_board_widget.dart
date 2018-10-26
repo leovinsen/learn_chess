@@ -64,13 +64,18 @@ class ChessBoardWidget extends StatelessWidget {
           flex: 1,
           child: IconButton(
             icon: Icon(Icons.keyboard_arrow_right),
-            onPressed: () => model.chess.getHistory({'verbose' : true}).forEach((state){
-              print(state);
-
-            }),
+            onPressed: () => print(model.history.toString())
+//                model.chess.getHistory({'verbose' : true}).forEach((state){
+//              print(state);
+//
+//            }),
           ),
         )
       ],
+    );
+
+    final history = Container(
+      child: Text(model.history.toString()),
     );
 
    // final history =
@@ -80,7 +85,8 @@ class ChessBoardWidget extends StatelessWidget {
       model: model,
       child: Column(children: <Widget>[
         chessBoard,
-        showHUD ? hud : Container()
+        showHUD ? hud : Container(),
+        showHUD ? Text(model.history.toString()) : Container(),
       ]),
     );
   }

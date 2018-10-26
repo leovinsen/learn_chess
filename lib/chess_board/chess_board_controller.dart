@@ -14,6 +14,7 @@ class ChessBoardController extends Model {
   String _selectedSquare;
   List _currentShownLegalMoves = [];
   List _moveHistorySAN = [];
+  List get history => _moveHistorySAN;
 
   List<State> getHistory(){
     return chess.history;
@@ -56,26 +57,28 @@ class ChessBoardController extends Model {
   }
 
   void handleUserTap(String squareName){
-    if(isAnyPieceSelected() && isTargetLegalMove(squareName)){
-      makeMove(squareName);
-    } else if () {
-
-    }
-    if(_controller.isAnyPieceSelected() && _controller.isTargetLegalMove(widget.squareName)){
-      _controller.makeMove(widget.squareName);
-    } else if(pieceName?.substring(0,1) == whoseTurn){
-      _controller.selectTile(_deselectThisTile, widget.squareName);
-      _selectThisTile();
-    }
+//    if(isAnyPieceSelected() && isTargetLegalMove(squareName)){
+//      makeMove(squareName);
+//    } else if () {
+//
+//    }
+//    if(_controller.isAnyPieceSelected() && _controller.isTargetLegalMove(widget.squareName)){
+//      _controller.makeMove(widget.squareName);
+//    } else if(pieceName?.substring(0,1) == whoseTurn){
+//      _controller.selectTile(_deselectThisTile, widget.squareName);
+//      _selectThisTile();
+//    }
   }
 
-  void makeMove(String squareName){
-    print('Moving to $squareName');
+  void makeMove(String san){
+    if(san == null) return;
 
-    chess.move({
-      'from' : _selectedSquare,
-      'to' : squareName
-    });
+//    chess.move({
+//      'from' : _selectedSquare,
+//      'to' : squareName
+//    });
+    chess.move(san);
+    storeMove(san);
 
     removeOldLegalMoveIndicators();
     deselectLastSquare();
@@ -84,7 +87,7 @@ class ChessBoardController extends Model {
   }
 
   void storeMove(String san){
-
+    _moveHistorySAN.add(san);
   }
 
   void undoMove(){
@@ -124,15 +127,15 @@ class ChessBoardController extends Model {
     return piece != null ? (piece.color.toString() + piece.type.name).toUpperCase() : null;
   }
 
-  bool isTargetLegalMove(String squareName){
+  String isTargetLegalMove(String squareName){
 
     for(int i = 0; i < _currentShownLegalMoves.length; i++){
       Map map = _currentShownLegalMoves[i];
       if(map['to'] == squareName) {
-        return true;
+        return map['san'];
       }
     }
-    return false;
+    return null;
   }
 //  bool isTargetLegalMove(String squareName){
 //    //bool b = false;

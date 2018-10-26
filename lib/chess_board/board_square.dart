@@ -119,8 +119,8 @@ class _BoardSquareState extends State<BoardSquare> {
         //If legal, perform the legal move
     //Else, check if the square is selectable
 
-    if(_controller.isAnyPieceSelected() && _controller.isTargetLegalMove(widget.squareName)){
-      _controller.makeMove(widget.squareName);
+    if(_controller.isAnyPieceSelected()){
+      _controller.makeMove(_controller.isTargetLegalMove(widget.squareName));
     } else if(pieceName?.substring(0,1) == whoseTurn){
       _controller.selectTile(_deselectThisTile, widget.squareName);
       _selectThisTile();
