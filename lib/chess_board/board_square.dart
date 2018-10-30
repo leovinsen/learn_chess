@@ -114,37 +114,11 @@ class BoardSquareState extends State<BoardSquare> {
         : Container();
   }
 
-//  void _handleUserTap(String pieceName, String whoseTurn){
-//    //First, check is a square is currently selected (refer to lastSlectedSquare)
-//    //If true, check if the target is in the legal move
-//        //If legal, perform the legal move
-//    //Else, check if the square is selectable
-//
-////    if(_controller.isAnyPieceSelected()){
-////      _controller.makeMove(_controller.isTargetLegalMove(widget.squareName));
-////    } else if(pieceName?.substring(0,1) == whoseTurn){
-////      _controller.selectTile(_deselectThisTile, widget.squareName);
-////      _selectThisTile();
-////    }
-//  }
-
   void toggleSelection(bool b){
     setState(() {
       _selected = b;
     });
   }
-
-//  void _selectThisTile(){
-//    setState(() {
-//      _selected = true;
-//    });
-//  }
-//
-//  void _deselectThisTile(){
-//    setState(() {
-//      _selected = false;
-//    });
-//  }
 
   void toggleLegalMoveIndicator(bool b){
     setState(() {

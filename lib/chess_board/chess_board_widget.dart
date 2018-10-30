@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:learn_chess/chess_board/board_square.dart';
 import 'package:learn_chess/chess_board/chess_board_controller.dart';
-import 'package:learn_chess/chess_board/hud.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:chess_vectors_flutter/chess_vectors_flutter.dart';
+
 
 class ChessBoardWidget extends StatelessWidget {
   final String initialPositionFEN;
@@ -11,7 +11,7 @@ class ChessBoardWidget extends StatelessWidget {
   final double boardWidth;
   final bool showHUD;
 
-  const ChessBoardWidget(
+  ChessBoardWidget(
       {@required this.showHUD,
       @required this.enableMovement,
       @required this.boardWidth,
@@ -20,8 +20,11 @@ class ChessBoardWidget extends StatelessWidget {
         assert(boardWidth != null),
         assert(showHUD != null);
 
+  ChessBoardController _controller;
+
   @override
   Widget build(BuildContext context) {
+    _controller = ChessBoardController(fen: initialPositionFEN, showPromotionDialog: ()=> createDialog(context));
     final boardBackground = Container(
       height: boardWidth,
       width: boardWidth,
@@ -50,7 +53,7 @@ class ChessBoardWidget extends StatelessWidget {
       ),
     );
 
-    final model = ChessBoardController(fen: initialPositionFEN, showPromotionDialog: ()=> createDialog(context));
+//    final model = ChessBoardController(fen: initialPositionFEN, showPromotionDialog: ()=> createDialog(context));
 
 //    final hud = Row(
 //      children: <Widget>[
@@ -80,12 +83,12 @@ class ChessBoardWidget extends StatelessWidget {
 
 
     return ScopedModel<ChessBoardController>(
-      model: model,
+      model: _controller,
       child: ScopedModelDescendant<ChessBoardController>(
         builder: (_, child, model){
           return Column(children: <Widget>[
             chessBoard,
-            showHUD ? chessHUD(undoMove: model.undoMove, history: model.history.toString(),) : Container()
+            showHUD ? ChessHUD(undoMove: model.undoMove, history: model.history.toString(),) : Container()
           ]);
         },
 //        ]),
@@ -192,8 +195,7 @@ class ChessBoardWidget extends StatelessWidget {
 
   Future<String> createDialog(BuildContext context) async {
 
-    ChessBoardController controller = ChessBoardController.of(context);
-    String playerTurn = controller.getPlayerTurn();
+    String playerTurn = _controller.getPlayerTurn();
       return await showDialog(
         barrierDismissible: false,
           context: context,
@@ -228,15 +230,15 @@ class ChessBoardWidget extends StatelessWidget {
 
 
   bool isWhite(String playerTurn){
-    return playerTurn == 'WHITE' ? true : false;
+    return playerTurn.startsWith('W') ? true : false;
   }
 }
 
-class chessHUD extends StatelessWidget {
+class ChessHUD extends StatelessWidget {
   final Function undoMove;
   String history;
 
-  chessHUD({@required this.undoMove, @required this.history}) : assert(undoMove != null), assert(history != null);
+  ChessHUD({@required this.undoMove, @required this.history}) : assert(undoMove != null), assert(history != null);
 
   @override
   Widget build(BuildContext context) {

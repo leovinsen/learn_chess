@@ -55,11 +55,16 @@ class ChessBoardController extends Model {
     });
   }
 
-  void handleUserTap(String squareName, String pieceName){
-    if(_selectedSquare!= null){
-      makeMove(isTargetLegalMove(squareName));
-    } else if (pieceName?.substring(0,1) == getPlayerTurn()){
-      _selectTile(squareName);
+  void handleUserTap(String squareName, String pieceName) async {
+
+    //Case 1
+    if(_selectedSquare == null){
+      if(pieceName?.substring(0,1) == getPlayerTurn()) _selectTile(squareName);
+    }
+    //Case 2
+    else {
+      if(pieceName?.substring(0,1) == getPlayerTurn()) _selectTile(squareName);
+      else makeMove(await isTargetLegalMove(squareName));
     }
   }
 
@@ -105,7 +110,7 @@ class ChessBoardController extends Model {
     return piece != null ? (piece.color.toString() + piece.type.name).toUpperCase() : null;
   }
 
-  String isTargetLegalMove(String squareName){
+  Future<String> isTargetLegalMove(String squareName) async {
 
     for(int i = 0; i < _currentShownLegalMoves.length; i++){
       Map map = _currentShownLegalMoves[i];
@@ -114,27 +119,21 @@ class ChessBoardController extends Model {
       if(map['to'] == squareName) {
         //Determine if it is a promotion
         if((map['flags'] as String).contains('p')){
-          showPromotionDialog();
+          String promotion = await showPromotionDialog();
+          return _constructPromotionSan(map['san'], promotion);
         }
-//        String san = map['san'];
-//        if(san)
         return map['san'];
       }
     }
     return null;
   }
-//  bool isTargetLegalMove(String squareName){
-//    //bool b = false;
-//
-//    for(int i = 0; i < _currentShownLegalMoves.length; i++){
-//      Map map = _currentShownLegalMoves[i];
-//      if(map['to'] == squareName) {
-//        return true;
-//      }
-//    }
-//    return false;
-//  }
 
+  String _constructPromotionSan(String san, String promotion){
+    List<String> a = san.split("=");
+    if(a[1].length >1 ) a[1] = promotion + '+';
+    else a[1] = promotion;
+    return a[0] + '=' + a[1];
+  }
 
   static ChessBoardController of(BuildContext context) =>
       ScopedModel.of<ChessBoardController>(context);
