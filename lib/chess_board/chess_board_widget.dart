@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:learn_chess/chess_board/board_square.dart';
 import 'package:learn_chess/chess_board/chess_board_controller.dart';
+import 'package:learn_chess/chess_board/hud.dart';
 import 'package:scoped_model/scoped_model.dart';
+import 'package:chess_vectors_flutter/chess_vectors_flutter.dart';
 
 class ChessBoardWidget extends StatelessWidget {
   final String initialPositionFEN;
@@ -48,46 +50,46 @@ class ChessBoardWidget extends StatelessWidget {
       ),
     );
 
-    final model = ChessBoardController(initialPositionFEN);
+    final model = ChessBoardController(fen: initialPositionFEN, showPromotionDialog: ()=> createDialog(context));
 
-    final hud = Row(
-      children: <Widget>[
-        Expanded(
-          flex: 1,
-          child: IconButton(
-            icon: Icon(Icons.keyboard_arrow_left),
-            onPressed: () => model.undoMove(),
-            tooltip: 'Undo',
-          ),
-        ),
-        Expanded(
-          flex: 1,
-          child: IconButton(
-            icon: Icon(Icons.keyboard_arrow_right),
-            onPressed: () => print(model.history.toString())
-//                model.chess.getHistory({'verbose' : true}).forEach((state){
-//              print(state);
+//    final hud = Row(
+//      children: <Widget>[
+//        Expanded(
+//          flex: 1,
+//          child: IconButton(
+//            icon: Icon(Icons.keyboard_arrow_left),
+//            onPressed: () => model.undoMove(),
+//            tooltip: 'Undo',
+//          ),
+//        ),
+//        Expanded(
+//          flex: 1,
+//          child: IconButton(
+//            icon: Icon(Icons.keyboard_arrow_right),
+//            onPressed: () => print(model.history.toString())
+//          ),
+//        )
+//      ],
+//    );
 //
-//            }),
-          ),
-        )
-      ],
-    );
-
-    final history = Container(
-      child: Text(model.history.toString()),
-    );
+//    final history = Container(
+//      child: Text(model.history.toString()),
+//    );
 
    // final history =
 
 
     return ScopedModel<ChessBoardController>(
       model: model,
-      child: Column(children: <Widget>[
-        chessBoard,
-        showHUD ? hud : Container(),
-        showHUD ? Text(model.history.toString()) : Container(),
-      ]),
+      child: ScopedModelDescendant<ChessBoardController>(
+        builder: (_, child, model){
+          return Column(children: <Widget>[
+            chessBoard,
+            showHUD ? chessHUD(undoMove: model.undoMove, history: model.history.toString(),) : Container()
+          ]);
+        },
+//        ]),
+      ),
     );
   }
 
@@ -187,4 +189,82 @@ class ChessBoardWidget extends StatelessWidget {
       }).toList());
     }).toList();
   }
+
+  Future<String> createDialog(BuildContext context) async {
+
+    ChessBoardController controller = ChessBoardController.of(context);
+    String playerTurn = controller.getPlayerTurn();
+      return await showDialog(
+        barrierDismissible: false,
+          context: context,
+          builder: (_){
+            return AlertDialog(
+                title: Text('Promotion'),
+              content: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  InkWell(
+                    child: isWhite(playerTurn) ? WhiteQueen() : BlackQueen(),
+                    onTap: () => Navigator.of(context).pop('Q'),
+                  ),
+                  InkWell(
+                    child: isWhite(playerTurn) ? WhiteBishop() : BlackBishop(),
+                    onTap: () => Navigator.of(context).pop('B'),
+                  ),
+                  InkWell(
+                    child: isWhite(playerTurn) ? WhiteRook() : BlackRook(),
+                    onTap: () => Navigator.of(context).pop('R'),
+                  ),
+                  InkWell(
+                    child: isWhite(playerTurn) ? WhiteKnight() : BlackKnight(),
+                    onTap: () => Navigator.of(context).pop('N'),
+                  )
+                ],
+              ),
+            );
+          }
+      );
+    }
+
+
+  bool isWhite(String playerTurn){
+    return playerTurn == 'WHITE' ? true : false;
+  }
 }
+
+class chessHUD extends StatelessWidget {
+  final Function undoMove;
+  String history;
+
+  chessHUD({@required this.undoMove, @required this.history}) : assert(undoMove != null), assert(history != null);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Expanded(
+              flex: 1,
+              child: IconButton(
+                icon: Icon(Icons.keyboard_arrow_left),
+                onPressed: () => undoMove(),
+                tooltip: 'Undo',
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: IconButton(
+                  icon: Icon(Icons.keyboard_arrow_right),
+                  onPressed: () => null),
+            )
+          ],
+        ),
+        Container(
+          child: Text(history),
+        )
+      ],
+    );
+  }
+}
+

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:learn_chess/beginners_course/beginners_course.dart';
-import 'package:learn_chess/chess_board/chess_board.dart';
-import 'package:learn_chess/chess_board/chess_board_controller.dart';
 import 'package:learn_chess/chess_board/chess_board_widget.dart';
-import 'package:scoped_model/scoped_model.dart';
 
 class HomePage extends StatelessWidget {
   @override

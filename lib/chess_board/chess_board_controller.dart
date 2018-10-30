@@ -1,129 +1,107 @@
-import 'package:chess/chess.dart';
-import 'package:flutter/material.dart' hide State;
+import 'package:chess/chess.dart' as chesslib;
+import 'package:flutter/material.dart';
+import 'package:learn_chess/chess_board/board_square.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 class ChessBoardController extends Model {
   final String fen;
-  Chess chess;
-  ChessBoardController([this.fen]){
-    chess = fen == null ? Chess() : Chess.fromFEN(fen);
+  final Function showPromotionDialog;
+  chesslib.Chess _chess;
+  ChessBoardController({this.fen, this.showPromotionDialog}) : assert(showPromotionDialog != null){
+    _chess = fen == null ? chesslib.Chess() : chesslib.Chess.fromFEN(fen);
   }
 
-  Map<String, Function(bool)> legalMoveIndicatorFunctions = {};
-  VoidCallback _deselectSelectedSquare;
+  Map<String, BoardSquareState> boardSquareStates = {};
+
+ // Map<String, Function(bool)> legalMoveIndicatorFunctions = {};
+ // VoidCallback _deselectSelectedSquare;
   String _selectedSquare;
   List _currentShownLegalMoves = [];
   List _moveHistorySAN = [];
   List get history => _moveHistorySAN;
 
-  List<State> getHistory(){
-    return chess.history;
+  List<chesslib.State> getHistory(){
+    return _chess.history;
   }
 
-  void selectTile(VoidCallback deselectCallback, String square){
-    if(_deselectSelectedSquare != null) _deselectSelectedSquare();
-
-    _deselectSelectedSquare = deselectCallback;
-    _selectedSquare = square;
-
-    removeOldLegalMoveIndicators();
-    generateNewLegalMoves(square);
-    generateNewLegalMoveIndicators();
+  void addBoardState(String squareName, State boardState){
+    boardSquareStates[squareName] = boardState;
   }
 
-  void removeOldLegalMoveIndicators(){
+  void _selectTile(String squareName){
+    if(_selectedSquare != null) boardSquareStates[_selectedSquare].toggleSelection(false);
+    boardSquareStates[squareName].toggleSelection(true);
+
+    _selectedSquare = squareName;
+    removeOldLegalMoves();
+    generateNewLegalMoves(squareName);
+  }
+
+  void removeOldLegalMoves(){
     _currentShownLegalMoves.forEach((entry){
-      legalMoveIndicatorFunctions[entry['to']](false);
+      boardSquareStates[entry['to']].toggleLegalMoveIndicator(false);
+      //legalMoveIndicatorFunctions[entry['to']](false);
     });
   }
 
   void generateNewLegalMoves(String squareName){
-    _currentShownLegalMoves = chess.moves({
+    _currentShownLegalMoves = _chess.moves({
       'square' : squareName,
       'verbose' : true
     });
-  }
-
-  void generateNewLegalMoveIndicators(){
     print(_currentShownLegalMoves);
     _currentShownLegalMoves.forEach((entry){
-      legalMoveIndicatorFunctions[entry['to']](true);
+      boardSquareStates[entry['to']].toggleLegalMoveIndicator(true);
     });
   }
 
-
-  void addBoardSquare(String squareName, Function(bool) callback){
-    legalMoveIndicatorFunctions[squareName] = callback;
-  }
-
-  void handleUserTap(String squareName){
-//    if(isAnyPieceSelected() && isTargetLegalMove(squareName)){
-//      makeMove(squareName);
-//    } else if () {
-//
-//    }
-//    if(_controller.isAnyPieceSelected() && _controller.isTargetLegalMove(widget.squareName)){
-//      _controller.makeMove(widget.squareName);
-//    } else if(pieceName?.substring(0,1) == whoseTurn){
-//      _controller.selectTile(_deselectThisTile, widget.squareName);
-//      _selectThisTile();
-//    }
+  void handleUserTap(String squareName, String pieceName){
+    if(_selectedSquare!= null){
+      makeMove(isTargetLegalMove(squareName));
+    } else if (pieceName?.substring(0,1) == getPlayerTurn()){
+      _selectTile(squareName);
+    }
   }
 
   void makeMove(String san){
     if(san == null) return;
 
-//    chess.move({
-//      'from' : _selectedSquare,
-//      'to' : squareName
-//    });
-    chess.move(san);
-    storeMove(san);
-
-    removeOldLegalMoveIndicators();
-    deselectLastSquare();
-
-    updateBoard();
-  }
-
-  void storeMove(String san){
+    _chess.move(san);
     _moveHistorySAN.add(san);
+    _cleanup();
+    _updateBoard();
   }
 
-  void undoMove(){
-    chess.undo_move();
-    notifyListeners();
-  }
-
-  void deselectLastSquare(){
-    _deselectSelectedSquare();
-    _deselectSelectedSquare = null;
+  void _cleanup(){
+    removeOldLegalMoves();
+    boardSquareStates[_selectedSquare].toggleSelection(false);
     _selectedSquare = null;
   }
 
-  void updateBoard() {
-    if (chess.in_checkmate) {
+  void undoMove(){
+    _chess.undo_move();
+    notifyListeners();
+  }
+
+  void _updateBoard() {
+    if (_chess.in_checkmate) {
       print('CHECKMATE!!!!');
-    } else if (chess.in_check) {
+    } else if (_chess.in_check) {
       print('Checkhu');
-    } else if (chess.in_stalemate) {
-      print('Salemaetett');
+    } else if (_chess.in_stalemate) {
+      print('Stalemate');
     }
 
     notifyListeners();
   }
 
   String getPlayerTurn(){
-    return chess.turn.toString().toUpperCase();
+    return _chess.turn.toString().toUpperCase();
   }
 
-
-  bool isAnyPieceSelected(){
-    return _deselectSelectedSquare != null;
-  }
 
   String getPieceName(String square){
-    Piece piece = chess.get(square);
+    chesslib.Piece piece = _chess.get(square);
     return piece != null ? (piece.color.toString() + piece.type.name).toUpperCase() : null;
   }
 
@@ -131,7 +109,15 @@ class ChessBoardController extends Model {
 
     for(int i = 0; i < _currentShownLegalMoves.length; i++){
       Map map = _currentShownLegalMoves[i];
+
+      //Move is legal
       if(map['to'] == squareName) {
+        //Determine if it is a promotion
+        if((map['flags'] as String).contains('p')){
+          showPromotionDialog();
+        }
+//        String san = map['san'];
+//        if(san)
         return map['san'];
       }
     }

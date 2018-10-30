@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:learn_chess/chess_board/chess_board.dart';
 import 'package:learn_chess/dashboard/home_page.dart';
 
 void main() => runApp(new MyApp());
