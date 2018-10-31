@@ -4,11 +4,12 @@ import 'package:learn_chess/chess_board/board_square.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 class ChessBoardController extends Model {
-  final String fen;
+  final String boardSetupFEN;
   final Function showPromotionDialog;
   chesslib.Chess _chess;
-  ChessBoardController({this.fen, this.showPromotionDialog}) : assert(showPromotionDialog != null){
-    _chess = fen == null ? chesslib.Chess() : chesslib.Chess.fromFEN(fen);
+  ChessBoardController({this.boardSetupFEN, this.showPromotionDialog}) : assert(showPromotionDialog != null){
+    _chess = chesslib.Chess.fromFEN(boardSetupFEN?? chesslib.Chess.DEFAULT_POSITION);
+    //_chess = boardSetupFEN == null ? chesslib.Chess() : chesslib.Chess.fromFEN(boardSetupFEN);
   }
 
   Map<String, BoardSquareState> boardSquareStates = {};
@@ -19,10 +20,10 @@ class ChessBoardController extends Model {
   List _currentShownLegalMoves = [];
   List _moveHistorySAN = [];
   List get history => _moveHistorySAN;
-
-  List<chesslib.State> getHistory(){
-    return _chess.history;
-  }
+//
+//  List<chesslib.State> getHistory(){
+//    return _chess.history;
+//  }
 
   void addBoardState(String squareName, State boardState){
     boardSquareStates[squareName] = boardState;
@@ -85,6 +86,7 @@ class ChessBoardController extends Model {
 
   void undoMove(){
     _chess.undo_move();
+    _moveHistorySAN.removeLast();
     notifyListeners();
   }
 
@@ -120,7 +122,8 @@ class ChessBoardController extends Model {
         //Determine if it is a promotion
         if((map['flags'] as String).contains('p')){
           String promotion = await showPromotionDialog();
-          return _constructPromotionSan(map['san'], promotion);
+          Map promotionMap = _currentShownLegalMoves.singleWhere((map) => map['to'] == squareName && (map['san'] as String).contains(promotion));
+          return promotionMap['san'];
         }
         return map['san'];
       }

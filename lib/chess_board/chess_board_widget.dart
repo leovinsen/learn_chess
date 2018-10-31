@@ -4,7 +4,6 @@ import 'package:learn_chess/chess_board/chess_board_controller.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:chess_vectors_flutter/chess_vectors_flutter.dart';
 
-
 class ChessBoardWidget extends StatelessWidget {
   final String initialPositionFEN;
   final bool enableMovement;
@@ -24,7 +23,7 @@ class ChessBoardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    _controller = ChessBoardController(fen: initialPositionFEN, showPromotionDialog: ()=> createDialog(context));
+    _controller = ChessBoardController(boardSetupFEN: initialPositionFEN, showPromotionDialog: ()=> createDialog(context));
     final boardBackground = Container(
       height: boardWidth,
       width: boardWidth,

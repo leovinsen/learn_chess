@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-
-double hPadding = 30.0;
+import 'styling.dart';
 
 class GuidePageTemplate extends StatefulWidget {
-  //final String _content;
   final String title;
-  final List<Widget>  content;
-  GuidePageTemplate({this.title, this.content});
+  final List<Widget> content;
+
+  GuidePageTemplate({@required this.title, @required this.content})
+      : assert(title != null),
+        assert (content != null);
 
   @override
   GuidePageTemplateState createState() {
@@ -15,12 +16,10 @@ class GuidePageTemplate extends StatefulWidget {
 }
 
 class GuidePageTemplateState extends State<GuidePageTemplate> {
+
   final PageController _controller = PageController();
 
   int _currentIndex = 0;
-
-  //Styling
-  TextTheme textTheme;
   double _hPadding = 30.0;
   double _topPadding = 90.0;
   double _bottomPadding = 30.0;
@@ -34,7 +33,6 @@ class GuidePageTemplateState extends State<GuidePageTemplate> {
 
   @override
   Widget build(BuildContext context) {
-    textTheme = Theme.of(context).textTheme.apply(bodyColor: Colors.white);
     return Material(
       child: Stack(
         children: <Widget>[
@@ -114,7 +112,7 @@ class GuidePageTemplateState extends State<GuidePageTemplate> {
       width: double.infinity,
       child: AppBar(
         centerTitle: true,
-        title: Text(widget.title),
+        title: Text(widget.title, style: textTheme.headline,),
         elevation: 0.0,
         backgroundColor: Colors.transparent,
       ),

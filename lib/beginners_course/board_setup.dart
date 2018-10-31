@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:learn_chess/beginners_course/guide_page_template.dart';
 import 'package:learn_chess/chess_board/chess_board_widget.dart';
+import 'styling.dart';
 
 class BoardSetupGuide extends StatefulWidget {
   @override
@@ -20,7 +21,7 @@ class BoardSetupGuideState extends State<BoardSetupGuide>{
   }
   @override
   Widget build(BuildContext context) {
-    boardWidth = MediaQuery.of(context).size.width - hPadding * 2;
+    boardWidth = MediaQuery.of(context).size.width - pageHorizontalPadding * 2;
     textTheme = Theme
         .of(context)
         .textTheme
@@ -28,97 +29,8 @@ class BoardSetupGuideState extends State<BoardSetupGuide>{
     return GuidePageTemplate(title: 'Board setup', content: [0,1,2,3,4,5,6].map((int index){
                         return pageWidgetBuilder(fenList[index], content[index]);
                       }).toList(),
-//      body: GuidePageTemplate(),
-//      child: Stack(
-//        children: <Widget>[
-//
-//          Container(
-//            decoration: BoxDecoration(
-//              gradient: new LinearGradient(
-//                begin: FractionalOffset.topLeft,
-//                end: FractionalOffset.bottomRight,
-//                colors: [
-//                  const Color(0xFF3C3B3F),
-//                  const Color(0xFF605C3C),
-//                ]
-//              )
-//            ),
-//            child: Column(
-//              children: <Widget>[
-//                Flexible(
-//                  child: Padding(
-//                    padding: EdgeInsets.only(top: 90.0, left: hPadding, right: hPadding, bottom: 30.0),
-//                    child: TabBarView(
-//                      controller: _tabController,
-//                      children: [firstPage()] + [0,1,2,3,4,5,6].map((int index){
-//                        return pageTemplate(fenList[index], content[index]);
-//                      }).toList()
-//
-//                    ),
-//                  ),
-//                ),
-//                pageIndicator(),
-//              ],
-//            ),
-//          ),
-//          SizedBox(
-//            height: 80.0,
-//            width: double.infinity,
-//            child: AppBar(
-//              elevation: 0.0,
-//              backgroundColor: Colors.transparent,
-//            ),
-//          ),
-//        ],
-//      ),
     );
   }
-
-//  Widget pageIndicator(){
-//    return PreferredSize(
-//      preferredSize: const Size.fromHeight(23.0),
-//      child: Theme(
-//        data: Theme.of(context).copyWith(accentColor: Colors.white),
-//        child: Transform.translate(
-//          offset: Offset(0.0, -10.0),
-//          child: Container(
-//            height: 28.0,
-//            alignment: Alignment.topCenter,
-//            child: TabPageSelector(controller: _tabController),
-//          ),
-//        ),
-//      ),
-//    );
-//  }
-
-//  Widget firstPage() {
-//
-//    return Padding(
-//      padding: const EdgeInsets.symmetric(vertical: 80.0),
-//      child: Container(
-//        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 30.0),
-//        decoration: BoxDecoration(
-//          color: Colors.black.withOpacity(0.3),
-//          borderRadius: BorderRadius.all(
-//            Radius.circular(5.0)
-//          )
-//        ),
-//        child: ListView(
-//          shrinkWrap: true,
-//          children: <Widget>[
-//            Center(child: Text('Setting Up The Board', style: textTheme.headline)),
-//            SizedBox(height: 30.0,),
-//            Text(
-//              'Before we start learning how to play the game, we ought to know how to set up the board!',
-//              textAlign: TextAlign.justify,
-//              style: textTheme
-//                  .title
-//              ,)
-//          ],
-//        ),
-//      ),
-//    );
-//  }
 
   Widget pageWidgetBuilder(String fen, String content){
 
