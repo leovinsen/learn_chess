@@ -21,13 +21,16 @@ Widget pageWithCenter(String text){
   );
 }
 
-Widget pageWithBoard(String text, BuildContext context, [ String fen]){
-  return Center(
-    child: Column(
+Widget pageWithBoard(String text, BuildContext context, [String fen]){
+  return Container(
+    child: ListView(
       children: <Widget>[
-        ChessBoardWidget(showHUD: false, enableMovement: false, boardWidth: MediaQuery.of(context).size
-          .width*0.7,),
-        Text(text, style: textTheme.title, textAlign: TextAlign.justify,)
+        ChessBoardWidget(showHUD: false,
+            enableMovement: false,
+            boardWidth: MediaQuery.of(context).size.width*0.8,
+            initialPositionFEN: fen),
+        SizedBox(height: 20.0),
+        Text(text, style: textTheme.title, textAlign: TextAlign.center)
       ],
     ),
   );

@@ -10,9 +10,9 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: new ThemeData(
         textTheme: buildTextTheme(Theme.of(context).textTheme),
-        primarySwatch: Colors.grey,
-        primaryColor: Colors.grey.shade600,
-        primaryColorLight: Colors.grey.shade300
+        primarySwatch: Colors.brown,
+        //primaryColor: Colors.grey.shade600,
+        //primaryColorLight: Colors.grey.shade300
       ),
       home: new HomePage(),
     );

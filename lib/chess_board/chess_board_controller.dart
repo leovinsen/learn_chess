@@ -5,124 +5,161 @@ import 'package:scoped_model/scoped_model.dart';
 
 class ChessBoardController extends Model {
   final String boardSetupFEN;
-  final Function showPromotionDialog;
+  final Function onPromotion;
+  final Function onCheckmate;
+  final Function onStalemate;
   chesslib.Chess _chess;
-  ChessBoardController({this.boardSetupFEN, this.showPromotionDialog}) : assert(showPromotionDialog != null){
-    _chess = chesslib.Chess.fromFEN(boardSetupFEN?? chesslib.Chess.DEFAULT_POSITION);
-    //_chess = boardSetupFEN == null ? chesslib.Chess() : chesslib.Chess.fromFEN(boardSetupFEN);
+
+  ChessBoardController(
+      {this.boardSetupFEN, this.onPromotion, this.onCheckmate, this.onStalemate})
+      : assert(onPromotion != null),
+        assert(onCheckmate != null),
+        assert(onStalemate != null) {
+    ///Initialize to default position if no setupFEN is provided
+    _chess = chesslib.Chess.fromFEN(
+        boardSetupFEN ?? chesslib.Chess.DEFAULT_POSITION);
   }
 
+  ///BoardSquareState references to call their functions
   Map<String, BoardSquareState> boardSquareStates = {};
-
- // Map<String, Function(bool)> legalMoveIndicatorFunctions = {};
- // VoidCallback _deselectSelectedSquare;
   String _selectedSquare;
-  List _currentShownLegalMoves = [];
+  List _legalMovesOfSelectedPiece = [];
   List _moveHistorySAN = [];
-  List get history => _moveHistorySAN;
-//
-//  List<chesslib.State> getHistory(){
-//    return _chess.history;
-//  }
 
-  void addBoardState(String squareName, State boardState){
+  List get history => _moveHistorySAN;
+
+  ///Called when BoardSquareStates are initialized. Provides a reference to each of them.
+  void addBoardState(String squareName, State boardState) {
     boardSquareStates[squareName] = boardState;
   }
 
-  void _selectTile(String squareName){
-    if(_selectedSquare != null) boardSquareStates[_selectedSquare].toggleSelection(false);
-    boardSquareStates[squareName].toggleSelection(true);
+  ///Called whenever user taps on a board square (both empty and occupied)
+  void _selectTile(String squareName) {
+    ///Turn off last selected tile
+    if (_selectedSquare != null) boardSquareStates[_selectedSquare].toggleSelection(false);
 
+    ///Turn on the selected tile and show the available legal moves
+    boardSquareStates[squareName].toggleSelection(true);
     _selectedSquare = squareName;
     removeOldLegalMoves();
     generateNewLegalMoves(squareName);
   }
 
-  void removeOldLegalMoves(){
-    _currentShownLegalMoves.forEach((entry){
+  void removeOldLegalMoves() {
+    _legalMovesOfSelectedPiece.forEach((entry) {
       boardSquareStates[entry['to']].toggleLegalMoveIndicator(false);
-      //legalMoveIndicatorFunctions[entry['to']](false);
     });
   }
 
-  void generateNewLegalMoves(String squareName){
-    _currentShownLegalMoves = _chess.moves({
-      'square' : squareName,
-      'verbose' : true
+  void generateNewLegalMoves(String squareName) {
+    _legalMovesOfSelectedPiece = _chess.moves({
+      'square': squareName,
+      'verbose': true
     });
-    print(_currentShownLegalMoves);
-    _currentShownLegalMoves.forEach((entry){
+
+    _legalMovesOfSelectedPiece.forEach((entry) {
       boardSquareStates[entry['to']].toggleLegalMoveIndicator(true);
     });
   }
 
-  void handleUserTap(String squareName, String pieceName) async {
+  ///tappedSquare (i.e. e5) denotes the location of the square
+  ///occupyingPiece is the name of the piece on that particular square
+  void handleUserTap(String tappedSquare, String occupyingPiece) async {
 
-    //Case 1
-    if(_selectedSquare == null){
-      if(pieceName?.substring(0,1) == getPlayerTurn()) _selectTile(squareName);
+    ///If there is no previously selected tile, then it is impossible to make a move.
+    ///Select the tappedSquare if user taps his own piece, else do nothing
+    if (_selectedSquare == null) {
+      if (occupyingPiece?.substring(0, 1) == getPlayerTurn())
+        _selectTile(tappedSquare);
     }
-    //Case 2
+    ///If there is a previously selected tile, then movement is possible.
+    ///Select the tappedSquare if user taps his own piece
+    ///Make a move if the user taps his opponent's piece
     else {
-      if(pieceName?.substring(0,1) == getPlayerTurn()) _selectTile(squareName);
-      else makeMove(await isTargetLegalMove(squareName));
+      if (occupyingPiece?.substring(0, 1) == getPlayerTurn())
+        _selectTile(tappedSquare);
+      else
+        makeMove(await isTargetLegalMove(tappedSquare));
     }
   }
 
-  void makeMove(String san){
-    if(san == null) return;
+  ///A san with value of null denotes that the move the user is trying to perform is not a legal move
+  void makeMove(String san) {
+    if (san == null) return;
 
     _chess.move(san);
     _moveHistorySAN.add(san);
     _cleanup();
-    _updateBoard();
+    notifyListeners();
+    _checkEndGame();
   }
 
-  void _cleanup(){
+  ///Removes old legal move indicators, previously selected tile and also reference to that tile
+  void _cleanup() {
     removeOldLegalMoves();
     boardSquareStates[_selectedSquare].toggleSelection(false);
     _selectedSquare = null;
   }
 
-  void undoMove(){
-    _chess.undo_move();
-    _moveHistorySAN.removeLast();
+  ///Undoes the last move
+  void undoMove() {
+    if (_moveHistorySAN.isNotEmpty) {
+      _chess.undo_move();
+      _moveHistorySAN.removeLast();
+      notifyListeners();
+    }
+  }
+
+  void restartBoard(){
+    _chess.reset();
+    _moveHistorySAN.clear();
     notifyListeners();
   }
 
-  void _updateBoard() {
+
+  void _checkEndGame() async {
     if (_chess.in_checkmate) {
-      print('CHECKMATE!!!!');
+      bool a = await onCheckmate();
+      if(a) {
+        restartBoard();
+      } else {
+        undoMove();
+      }
     } else if (_chess.in_check) {
       print('Checkhu');
     } else if (_chess.in_stalemate) {
-      print('Stalemate');
+      bool a = await onStalemate();
+      if(a) {
+        restartBoard();
+      } else {
+        undoMove();
+      }
     }
-
-    notifyListeners();
   }
 
-  String getPlayerTurn(){
+  String getPlayerTurn() {
     return _chess.turn.toString().toUpperCase();
   }
 
-
-  String getPieceName(String square){
+  String getPieceName(String square) {
     chesslib.Piece piece = _chess.get(square);
-    return piece != null ? (piece.color.toString() + piece.type.name).toUpperCase() : null;
+    return piece != null
+        ? (piece.color.toString() + piece.type.name).toUpperCase()
+        : null;
   }
 
   Future<String> isTargetLegalMove(String squareName) async {
+    for (int i = 0; i < _legalMovesOfSelectedPiece.length; i++) {
+      Map map = _legalMovesOfSelectedPiece[i];
 
-    for(int i = 0; i < _currentShownLegalMoves.length; i++){
-      Map map = _currentShownLegalMoves[i];
-
-      //Move is legal
-      if(map['to'] == squareName) {
-        //Determine if it is a promotion
-        if((map['flags'] as String).contains('p')){
-          String promotion = await showPromotionDialog();
-          Map promotionMap = _currentShownLegalMoves.singleWhere((map) => map['to'] == squareName && (map['san'] as String).contains(promotion));
+      ///Move is legal
+      if (map['to'] == squareName) {
+        ///Determine if it is a promotion
+        if ((map['flags'] as String).contains('p')) {
+          String promotion = await onPromotion();
+          Map promotionMap = _legalMovesOfSelectedPiece.singleWhere((map) =>
+              map['to'] == squareName &&
+              (map['san'] as String).contains(promotion));
           return promotionMap['san'];
         }
         return map['san'];
@@ -131,17 +168,13 @@ class ChessBoardController extends Model {
     return null;
   }
 
-  String _constructPromotionSan(String san, String promotion){
-    List<String> a = san.split("=");
-    if(a[1].length >1 ) a[1] = promotion + '+';
-    else a[1] = promotion;
-    return a[0] + '=' + a[1];
-  }
+//  String _constructPromotionSan(String san, String promotion){
+//    List<String> a = san.split("=");
+//    if(a[1].length >1 ) a[1] = promotion + '+';
+//    else a[1] = promotion;
+//    return a[0] + '=' + a[1];
+//  }
 
   static ChessBoardController of(BuildContext context) =>
       ScopedModel.of<ChessBoardController>(context);
-
-
-
-
 }

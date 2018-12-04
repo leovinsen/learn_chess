@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:learn_chess/chess_board/board.dart';
 import 'package:learn_chess/chess_board/board_square.dart';
 import 'package:learn_chess/chess_board/chess_board_controller.dart';
+import 'package:learn_chess/chess_board/chess_board_hud.dart';
 import 'package:scoped_model/scoped_model.dart';
 import 'package:chess_vectors_flutter/chess_vectors_flutter.dart';
 
+///Parent for the whole Chess Board widgets
 class ChessBoardWidget extends StatelessWidget {
+
+  ///FEN stands for Forsyth–Edwards Notation, a standard notation used to describe a particular
   final String initialPositionFEN;
+
+  ///If false is provided, interaction with the chess board will be disabled
   final bool enableMovement;
+
+  ///Width of widget
   final double boardWidth;
+
+  ///If false is provided, disable HUD
   final bool showHUD;
 
   ChessBoardWidget(
@@ -19,253 +30,113 @@ class ChessBoardWidget extends StatelessWidget {
         assert(boardWidth != null),
         assert(showHUD != null);
 
+  ///Controller responsible for calculating all logic
   ChessBoardController _controller;
 
   @override
   Widget build(BuildContext context) {
-    _controller = ChessBoardController(boardSetupFEN: initialPositionFEN, showPromotionDialog: ()=> createDialog(context));
-    final boardBackground = Container(
-      height: boardWidth,
-      width: boardWidth,
-      child: Image.asset(
-        "images/chess_board.png",
-      ),
+    _controller = ChessBoardController(
+        boardSetupFEN: initialPositionFEN,
+        onPromotion: () => showPromotionDialog(context),
+      onCheckmate: () => showGameOverDialog(context, "checkmate"),
+      onStalemate: () => showGameOverDialog(context, "stalemate")
     );
-
-    //Since there are 8x8 squares, each square's length and width will be exactly boardWidth/8
-    final boardSquares = Container(
-      height: boardWidth,
-      width: boardWidth,
-      child: Table(
-        children: buildBoard(boardWidth / 8),
-      ),
-    );
-
-    final chessBoard = Container(
-      height: boardWidth,
-      width: boardWidth,
-      child: Stack(
-        children: <Widget>[
-          boardBackground,
-          boardSquares
-        ],
-      ),
-    );
-
-//    final model = ChessBoardController(fen: initialPositionFEN, showPromotionDialog: ()=> createDialog(context));
-
-//    final hud = Row(
-//      children: <Widget>[
-//        Expanded(
-//          flex: 1,
-//          child: IconButton(
-//            icon: Icon(Icons.keyboard_arrow_left),
-//            onPressed: () => model.undoMove(),
-//            tooltip: 'Undo',
-//          ),
-//        ),
-//        Expanded(
-//          flex: 1,
-//          child: IconButton(
-//            icon: Icon(Icons.keyboard_arrow_right),
-//            onPressed: () => print(model.history.toString())
-//          ),
-//        )
-//      ],
-//    );
-//
-//    final history = Container(
-//      child: Text(model.history.toString()),
-//    );
-
-   // final history =
-
 
     return ScopedModel<ChessBoardController>(
       model: _controller,
       child: ScopedModelDescendant<ChessBoardController>(
-        builder: (_, child, model){
+        builder: (_, child, model) {
           return Column(children: <Widget>[
-            chessBoard,
-            showHUD ? ChessHUD(undoMove: model.undoMove, history: model.history.toString(),) : Container()
+            Board(boardWidth, enableMovement),
+            showHUD
+                ? ChessHUD(
+                    undoMove: model.undoMove,
+                    history: model.history,
+                  )
+                : Container()
           ]);
         },
-//        ]),
       ),
     );
   }
 
-  List<TableRow> buildBoard(double squareWidth) {
-    //from white perspective
-    var squareList = [
-      [
-        "a8",
-        "b8",
-        "c8",
-        "d8",
-        "e8",
-        "f8",
-        "g8",
-        "h8",
-      ],
-      [
-        "a7",
-        "b7",
-        "c7",
-        "d7",
-        "e7",
-        "f7",
-        "g7",
-        "h7",
-      ],
-      [
-        "a6",
-        "b6",
-        "c6",
-        "d6",
-        "e6",
-        "f6",
-        "g6",
-        "h6",
-      ],
-      [
-        "a5",
-        "b5",
-        "c5",
-        "d5",
-        "e5",
-        "f5",
-        "g5",
-        "h5",
-      ],
-      [
-        "a4",
-        "b4",
-        "c4",
-        "d4",
-        "e4",
-        "f4",
-        "g4",
-        "h4",
-      ],
-      [
-        "a3",
-        "b3",
-        "c3",
-        "d3",
-        "e3",
-        "f3",
-        "g3",
-        "h3",
-      ],
-      [
-        "a2",
-        "b2",
-        "c2",
-        "d2",
-        "e2",
-        "f2",
-        "g2",
-        "h2",
-      ],
-      [
-        "a1",
-        "b1",
-        "c1",
-        "d1",
-        "e1",
-        "f1",
-        "g1",
-        "h1",
-      ],
-    ];
+  ///Shows a promotion dialog in which user can choose what piece to promote to.
+  ///Available options are: queens, rooks, bishops and knights.
+  Future<String> showPromotionDialog(BuildContext context) async {
 
-    return squareList.map((row) {
-      return TableRow(
-          children: row.map((square) {
-        return BoardSquare(
-          squareName: square,
-          squareWidth: squareWidth,
-          enableMovement: enableMovement,
-        );
-      }).toList());
-    }).toList();
+    ///Used to determine the color of the pieces
+    String playerTurn = _controller.getPlayerTurn();
+
+    return await showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (_) {
+          return AlertDialog(
+            title: Text('Promotion'),
+            content: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                InkWell(
+                  child: isWhite(playerTurn) ? WhiteQueen() : BlackQueen(),
+                  onTap: () => Navigator.of(context).pop('Q'),
+                ),
+                InkWell(
+                  child: isWhite(playerTurn) ? WhiteBishop() : BlackBishop(),
+                  onTap: () => Navigator.of(context).pop('B'),
+                ),
+                InkWell(
+                  child: isWhite(playerTurn) ? WhiteRook() : BlackRook(),
+                  onTap: () => Navigator.of(context).pop('R'),
+                ),
+                InkWell(
+                  child: isWhite(playerTurn) ? WhiteKnight() : BlackKnight(),
+                  onTap: () => Navigator.of(context).pop('N'),
+                )
+              ],
+            ),
+          );
+        });
   }
 
-  Future<String> createDialog(BuildContext context) async {
-
-    String playerTurn = _controller.getPlayerTurn();
-      return await showDialog(
-        barrierDismissible: false,
-          context: context,
-          builder: (_){
-            return AlertDialog(
-                title: Text('Promotion'),
-              content: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  InkWell(
-                    child: isWhite(playerTurn) ? WhiteQueen() : BlackQueen(),
-                    onTap: () => Navigator.of(context).pop('Q'),
-                  ),
-                  InkWell(
-                    child: isWhite(playerTurn) ? WhiteBishop() : BlackBishop(),
-                    onTap: () => Navigator.of(context).pop('B'),
-                  ),
-                  InkWell(
-                    child: isWhite(playerTurn) ? WhiteRook() : BlackRook(),
-                    onTap: () => Navigator.of(context).pop('R'),
-                  ),
-                  InkWell(
-                    child: isWhite(playerTurn) ? WhiteKnight() : BlackKnight(),
-                    onTap: () => Navigator.of(context).pop('N'),
-                  )
-                ],
-              ),
-            );
-          }
-      );
+  ///Called when the game is over (checkmate or stalemate)
+  ///Gives the user options to either start a new game or undo (to allow players to change the outcome of the game
+  Future<bool> showGameOverDialog(BuildContext context, String result) async {
+    String title;
+    if(result == "checkmate") {
+      title = "Checkmate!";
+    } else if (result == "stalemate") {
+      title = "Stalemate!";
     }
 
+    return await showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          title: Text(title),
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              RaisedButton(
+                color: Theme.of(context).primaryColor,
+                child: Text('Play Again'),
+                onPressed: () => Navigator.of(context).pop(true) ,
+              ),
+              FlatButton(
+                child: Text('Undo'),
+                onPressed: ()=> Navigator.of(context).pop(false),
+              )
+            ],
+          ),
+        );
+      }
+    );
 
-  bool isWhite(String playerTurn){
+  }
+
+
+  ///Helper method that returns true if player turn is white
+  bool isWhite(String playerTurn) {
     return playerTurn.startsWith('W') ? true : false;
   }
 }
-
-class ChessHUD extends StatelessWidget {
-  final Function undoMove;
-  String history;
-
-  ChessHUD({@required this.undoMove, @required this.history}) : assert(undoMove != null), assert(history != null);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            Expanded(
-              flex: 1,
-              child: IconButton(
-                icon: Icon(Icons.keyboard_arrow_left),
-                onPressed: () => undoMove(),
-                tooltip: 'Undo',
-              ),
-            ),
-            Expanded(
-              flex: 1,
-              child: IconButton(
-                  icon: Icon(Icons.keyboard_arrow_right),
-                  onPressed: () => null),
-            )
-          ],
-        ),
-        Container(
-          child: Text(history),
-        )
-      ],
-    );
-  }
-}
-

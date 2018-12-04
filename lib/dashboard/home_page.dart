@@ -28,7 +28,7 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   final List data =[
     ["Beginners' Course", Icon(Icons.book)],
-    ["Play Chess", Icon(Icons.play_arrow)],
+    ["Play!", Icon(Icons.play_arrow)],
   ];
 
   int _currentIndex = 0;
@@ -59,6 +59,7 @@ class HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
+        elevation: 0.0,
         title: Text(data[_currentIndex][0]),
       ),
       body: selectWidget(_currentIndex),
@@ -72,6 +73,8 @@ class HomePageState extends State<HomePage> {
         return BeginnersCourse();
       case 1:
         return ChessBoardWidget(enableMovement: true, boardWidth: MediaQuery.of(context).size.width, showHUD: true,);
+      default:
+        return null;
     }
   }
 
